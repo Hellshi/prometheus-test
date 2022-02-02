@@ -1,10 +1,17 @@
 const Router = require('express').Router();
-const verify = require('./PrivateRoute')
+const client = require('prom-client')
 
-Router.get('/', verify, (req, res) => {
-    res.json({
-        posts:{"title": "You should see me with a crown, honey"}
+
+Router.get('/metrics', async (req, res) => {
+    const register = new client.Registry()
+    client.collectDefaultMetrics({
+      prefix: 'payment_',
+      gcDurationBuckets: [0.001, 0.01, 0.1, 1, 2, 5],
+      register
     })
+    res.setHeader('Content-Type', register.contentType)
+    const response = await register.metrics()
+    res.send(response)
 })
 
 module.exports = Router
